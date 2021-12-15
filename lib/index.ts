@@ -9,7 +9,7 @@ export interface MyFluentBitAddOnProps extends HelmAddOnUserProps {
 
 
 export const defaultProps: HelmAddOnProps & MyFluentBitAddOnProps = {
-    chart: 'aws-for-fluentbit',
+    chart: 'aws-for-fluent-bit',
     cloudWatchRegion: 'us-east-1',
     name: 'my-addon',
     namespace: 'kube-system',

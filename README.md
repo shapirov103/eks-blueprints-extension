@@ -5,7 +5,7 @@ Supplemental repository that shows how to create extensions for https://github.c
 
 Instructions are provided for MacOS. For Linux and Windows please consult documentation how to install the required components (`make`, `nodejs`). Please consider contributing to this guide.
 
-1. Install make on Mac.
+1. Install Make on Mac.
 ```
 $ sudo brew install make
 ```
@@ -28,7 +28,7 @@ Make sure you run `source ~/.bashrc` after editing the file.
 Example for mac/linux terminal:
 
 ```
-$ echo 'alias cdk1="npx cdk"' >> ~/.zshrc
+$ echo 'alias cdk="npx cdk"' >> ~/.zshrc
 $ source ~/.zshrc
 ```
 
