@@ -13,7 +13,7 @@ export const defaultProps: HelmAddOnProps & MyFluentBitAddOnProps = {
     cloudWatchRegion: 'us-east-1',
     name: 'my-addon',
     namespace: 'kube-system',
-    release: 'ssp-addon-myextension-fluentbit',
+    release: 'ssp-addon-myextension-fluent-bit',
     version: '0.1.11',
     repository: 'https://aws.github.io/eks-charts',
     values: {}
