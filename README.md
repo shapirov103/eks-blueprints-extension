@@ -46,13 +46,15 @@ Where 'myproduct' should be replaced with the name of your product.
 
 7. Apply other dependencies to the package.json and make sure that the CDK version used in the file is the one that is used by the SSP EKS Quickstart, which can be looked up on the [Getting Started Page](https://github.com/aws-quickstart/ssp-amazon-eks#getting-started) or directly in the [package.json](https://github.com/aws-quickstart/ssp-amazon-eks/blob/main/package.json).
 
-8. Apply changes to `lib/index.ts` to implement your add-on. Note. the quickstart provides convenience base class `HelmAddOn` for add-ons that leverage a helm chart. It has a few advantages, including ability to use GitOps for add-on management.
+8.  Run `npm i`.
 
-9. Apply changes to `bin/main.ts` to test your add-on.
+9. Apply changes to `lib/index.ts` to implement your add-on. Note. the quickstart provides convenience base class `HelmAddOn` for add-ons that leverage a helm chart. It has a few advantages, including ability to use GitOps for add-on management.
 
-10. Run `make build`, `make lint`, `cdk list` to build. 
-11. Run `cdk deploy` to test the blueprint with deployment to AWS.
-12. Use Jest test framework for any unit tests.
-13. Run `npm publish` to publish your add-on to npm. 
-14. Create documentation, populate README on the repo. 
-15. Create an example pattern and documentation that could be submitted to https://github.com/aws-samples/ssp-eks-patterns
+10. Apply changes to `bin/main.ts` to test your add-on.
+
+11. Run `make build`, `make lint`, `cdk list` to build. 
+12. Run `cdk deploy` to test the blueprint with deployment to AWS.
+13. Use Jest test framework for any unit tests.
+14. Run `npm publish` to publish your add-on to npm. 
+15. Create documentation, populate README on the repo. 
+16. Create an example pattern and documentation that could be submitted to https://github.com/aws-samples/ssp-eks-patterns
