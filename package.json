@@ -27,9 +27,9 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
-    "@aws-quickstart/ssp-amazon-eks": "^0.12.3",
-    "@aws-cdk/core": "1.135.0",
     "@aws-cdk/aws-iam": "1.135.0",
+    "@aws-cdk/core": "1.135.0",
+    "@aws-quickstart/ssp-amazon-eks": "file:../quickstart-ssp-amazon-eks/aws-quickstart-ssp-amazon-eks-0.12.7.tgz",
     "source-map-support": "^0.5.16"
   }
 }
