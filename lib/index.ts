@@ -6,7 +6,15 @@ import { CsiSecrets, CsiSecretsProps } from '@aws-quickstart/ssp-amazon-eks/dist
 
 
 export interface MyFluentBitAddOnProps extends HelmAddOnUserProps {
-    cloudWatchRegion: string
+    /**
+     * Cloudwatch region where logs are forwarded
+     */
+    cloudWatchRegion: string;
+
+    /**
+     * Optional license key that contains the name of the secret in AWS Secrets Manager to retrieve the secret.
+     */
+    licenseKeySecret?: string
 }
 
 

@@ -8,6 +8,7 @@ ssp.EksBlueprint.builder()
     .addOns(new ssp.MetricsServerAddOn)
     .addOns(new ssp.ClusterAutoScalerAddOn)
     .addOns(new ssp.addons.SSMAgentAddOn)
+    .addOns(new ssp.SecretsStoreAddOn)
     .addOns(new MyFluentBitAddOn({
         cloudWatchRegion: 'us-east-1'
     }))
