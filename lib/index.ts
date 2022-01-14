@@ -47,7 +47,7 @@ export class MyFluentBitAddOn extends HelmAddOn {
         });
 
         const csiSecret: CsiSecretsProps = {
-            secretProvider: new ssp.LookupSecretsManagerSecretByName('MyAddOnLicenseKey'),
+            secretProvider: new ssp.LookupSecretsManagerSecretByName('my-addon-license'),
             kubernetesSecret: {
                 secretName: 'my-addon-license',
                 data: [
@@ -56,7 +56,7 @@ export class MyFluentBitAddOn extends HelmAddOn {
                     }
                 ]
             }
-        };
+        };git 
 
         // Cloud Map Full Access policy.
         const cloudWatchAgentPolicy = ManagedPolicy.fromAwsManagedPolicyName("CloudWatchAgentServerPolicy");
@@ -71,8 +71,27 @@ export class MyFluentBitAddOn extends HelmAddOn {
             },
             cloudWatch: {
                 region: this.options.cloudWatchRegion
-            } 
+            },
+            volumes: [
+                {
+                    name: "secrets-store-inline",
+                    csi: {
+                        driver: "secrets-store.csi.k8s.io",
+                        readOnly: true,
+                        volumeAttributes: {
+                            secretProviderClass: "aws-for-fluent-bit-sa-aws-secrets"
+                        }
+                    }
+                }
+            ],
+            volumeMounts: [
+                {
+                    name: "secrets-store-inline",
+                    mountPath: "/mnt/secret-store"
+                }
+            ]
         });
+
         chart.node.addDependency(sa);
 
         return Promise.resolve(chart);
