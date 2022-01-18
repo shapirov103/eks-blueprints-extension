@@ -29,6 +29,18 @@ export const defaultProps: HelmAddOnProps & MyFluentBitAddOnProps = {
     values: {}
 }
 
+const csiSecret: CsiSecretsProps = {
+    secretProvider: new ssp.LookupSecretsManagerSecretByName('my-addon-license'),
+    kubernetesSecret: {
+        secretName: 'my-addon-license',
+        data: [
+            {
+                key: 'licenseKey'
+            }
+        ]
+    }
+};
+
 export class MyFluentBitAddOn extends HelmAddOn {
 
     readonly options: MyFluentBitAddOnProps;
@@ -46,23 +58,11 @@ export class MyFluentBitAddOn extends HelmAddOn {
             namespace: this.props.namespace
         });
 
-        const csiSecret: CsiSecretsProps = {
-            secretProvider: new ssp.LookupSecretsManagerSecretByName('my-addon-license'),
-            kubernetesSecret: {
-                secretName: 'my-addon-license',
-                data: [
-                    {
-                        key: 'licenseKey'
-                    }
-                ]
-            }
-        };git 
-
         // Cloud Map Full Access policy.
         const cloudWatchAgentPolicy = ManagedPolicy.fromAwsManagedPolicyName("CloudWatchAgentServerPolicy");
         sa.role.addManagedPolicy(cloudWatchAgentPolicy);
 
-        new CsiSecrets([csiSecret], sa).setupSecrets(clusterInfo);
+        new CsiSecrets([csiSecret], sa, "my-addon-license-secret-class").setupSecrets(clusterInfo);
         
         const chart = this.addHelmChart(clusterInfo, {
             serviceAccount: {
@@ -79,7 +79,7 @@ export class MyFluentBitAddOn extends HelmAddOn {
                         driver: "secrets-store.csi.k8s.io",
                         readOnly: true,
                         volumeAttributes: {
-                            secretProviderClass: "aws-for-fluent-bit-sa-aws-secrets"
+                            secretProviderClass: "my-addon-license-secret-class"
                         }
                     }
                 }
