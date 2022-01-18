@@ -1,5 +1,6 @@
 # ssp-eks-extension
-Supplemental repository that shows how to create extensions for https://github.com/aws-quickstart/ssp-amazon-eks
+Supplemental repository that shows how to create extensions for https://github.com/aws-quickstart/ssp-amazon-eks.
+Demonstrates how to create an independent add-on for SSP, create a Kubernetes service account integrate with IAM roles (IRSA) to access AWS resources, configure secrets in AWS Secrets Manager and leverage them in your add-on (for example a license).
 
 # Prerequisites
 
