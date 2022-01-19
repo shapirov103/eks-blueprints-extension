@@ -1,8 +1,7 @@
 import { ManagedPolicy } from '@aws-cdk/aws-iam';
 import { Construct } from '@aws-cdk/core';
+import { ServiceAccount } from '@aws-cdk/aws-eks'; 
 import * as ssp from '@aws-quickstart/ssp-amazon-eks';
-
-
 
 
 export interface MyFluentBitAddOnProps extends ssp.addons.HelmAddOnUserProps {
@@ -18,7 +17,7 @@ export interface MyFluentBitAddOnProps extends ssp.addons.HelmAddOnUserProps {
 }
 
 
-export const defaultProps: HelmAddOnProps & MyFluentBitAddOnProps = {
+export const defaultProps: ssp.addons.HelmAddOnProps & MyFluentBitAddOnProps = {
     chart: 'aws-for-fluent-bit',
     cloudWatchRegion: 'us-east-1',
     name: 'my-addon',
@@ -39,19 +38,27 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
         this.options = this.props as MyFluentBitAddOnProps;
     }
 
-    @ssp.utils.dependable(ssp.SecretsStoreAddOn.name)
+    // Declares dependency on secret store add-on if secrets are needed. 
+    // Customers will have to explicitly add this add-on to the blueprint.
+    @ssp.utils.dependable(ssp.SecretsStoreAddOn.name) 
     deploy(clusterInfo: ssp.ClusterInfo): Promise<Construct> {
+
+        const ns = ssp.utils.createNamespace(this.props.namespace, clusterInfo.cluster, true);
+
         const serviceAccountName = 'aws-for-fluent-bit-sa';
         const sa = clusterInfo.cluster.addServiceAccount('my-aws-for-fluent-bit-sa', {
             name: serviceAccountName,
             namespace: this.props.namespace
         });
 
+        sa.node.addDependency(ns); // signal provisioning to wait for namespace creation to complete 
+                                   // before the service account creation is attempted (otherwise can fire in parallel)
+
         // Cloud Map Full Access policy.
         const cloudWatchAgentPolicy = ManagedPolicy.fromAwsManagedPolicyName("CloudWatchAgentServerPolicy");
         sa.role.addManagedPolicy(cloudWatchAgentPolicy);
 
-        const values: any = {
+        const values: ssp.Values = {
             serviceAccount: {
                 create: false,
                 name: serviceAccountName
@@ -61,24 +68,34 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
             }
         };
 
-        let secretProviderClass : SecretProviderClass | undefined;
+        let secretProviderClass : ssp.addons.SecretProviderClass | undefined;
         if(this.options.licenseKeySecret) {
             secretProviderClass = this.setupSecretProviderClass(clusterInfo, sa);
-            this.addVolumesAndMounts(values);
+            this.addSecretVolumeAndMount(values);
         }
         
         const chart = this.addHelmChart(clusterInfo, values);
         chart.node.addDependency(sa);
 
-        if(secretProviderClass) { // if secret provider class must be created before the helm chart is applied
+        if(secretProviderClass) { // if secret provider class must be created before the helm chart is applied, add dependenncy to enforce the order
             secretProviderClass.addDependent(chart);
         }
 
-        return Promise.resolve(chart);
+        return Promise.resolve(chart); // returning this promise will enable other add-ons to declare dependency on this addon.
     }
 
-    setupSecretProviderClass(clusterInfo: ssp.ClusterInfo, serviceAccount: ServiceAccount): SecretProviderClass {
-        const csiSecret: CsiSecretProps = {
+    /**
+     * Creates a secret provider class for the specified secret key (licenseKey). 
+     * The secret provider class can then be mounted to pods and the secret is made available as the volume mount.
+     * The CSI Secret Driver also creates a regular Kubernetes Secret once the secret volume is mounted. That secret
+     * is available while at least one pod with the mounted secret volume exists.
+     * 
+     * @param clusterInfo 
+     * @param serviceAccount 
+     * @returns 
+     */
+    private setupSecretProviderClass(clusterInfo: ssp.ClusterInfo, serviceAccount: ServiceAccount): ssp.SecretProviderClass {
+        const csiSecret: ssp.addons.CsiSecretProps = {
             secretProvider: new ssp.LookupSecretsManagerSecretByName(this.options.licenseKeySecret!),
             kubernetesSecret: {
                 secretName: this.options.licenseKeySecret!,
@@ -90,10 +107,15 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
             }
         };
 
-       return new ssp.addons.SecretProviderClass(clusterInfo, sa, "my-addon-license-secret-class", csiSecret);
+       return new ssp.addons.SecretProviderClass(clusterInfo, serviceAccount, "my-addon-license-secret-class", csiSecret);
     }
 
-    addVolumesAndMounts(values: any) {
+    /**
+     * Adds secret volume for the specified secret provider class and mount through helm values.
+     * Helm support to add volumes and mounts is part of the aws fluentbit helm chart.
+     * @param values for the helm chart where volumes and mounts must be added
+     */
+    private addSecretVolumeAndMount(values: ssp.Values) {
         ssp.utils.setPath(values, "volumes", [
             {
                 name: "secrets-store-inline",
