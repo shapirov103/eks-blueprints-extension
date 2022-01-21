@@ -7,8 +7,11 @@ const app = new App();
 ssp.EksBlueprint.builder()
     .addOns(new ssp.MetricsServerAddOn)
     .addOns(new ssp.ClusterAutoScalerAddOn)
-    .addOns(new ssp.addons.SSMAgentAddOn)
-    .addOns(new MyFluentBitAddOn({
-        cloudWatchRegion: 'us-east-1'
-    }))
-    .build(app, 'my-extension-test-blueprint');
+    .addOns(new ssp.addons.SSMAgentAddOn) // needed for AWS internal accounts only
+    .addOns(new ssp.SecretsStoreAddOn) // requires to support CSI Secrets
+     .addOns(new MyFluentBitAddOn({
+         cloudWatchRegion: 'us-east-2',
+         //licenseKeySecret: 'my-addon-license', // if you set it, make sure there is a secret named my-addon-license-key in the target region
+         namespace: 'my-addon-namespace'
+     }))
+     .build(app, 'my-extension-test-blueprint');
