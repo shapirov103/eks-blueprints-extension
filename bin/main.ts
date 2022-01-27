@@ -11,7 +11,7 @@ ssp.EksBlueprint.builder()
     .addOns(new ssp.SecretsStoreAddOn) // requires to support CSI Secrets
     .addOns(new MyFluentBitAddOn({
          cloudWatchRegion: 'us-east-2',
-         licenseKeySecret: 'my-addon-license',
+         //licenseKeySecret: 'my-addon-license', // if you set it, make sure there is a secret named my-addon-license-key in the target region
          namespace: 'my-addon-namespace'
      }))
      .addOns(new ssp.addons.ArgoCDAddOn({
