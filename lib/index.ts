@@ -1,7 +1,7 @@
+import * as blueprints from '@aws-quickstart/eks-blueprints';
+import { ServiceAccount } from 'aws-cdk-lib/aws-eks';
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { ServiceAccount } from 'aws-cdk-lib/aws-eks'; 
-import * as blueprints from '@aws-quickstart/eks-blueprints';
 
 
 export interface MyFluentBitAddOnProps extends blueprints.addons.HelmAddOnUserProps {
@@ -22,7 +22,7 @@ export const defaultProps: blueprints.addons.HelmAddOnProps & MyFluentBitAddOnPr
     cloudWatchRegion: 'us-east-1',
     name: 'my-addon',
     namespace: 'kube-system',
-    release: 'ssp-addon-myextension-fluent-bit',
+    release: 'blueprints-addon-myextension-fluent-bit',
     version: '0.1.11',
     repository: 'https://aws.github.io/eks-charts',
     values: {}
