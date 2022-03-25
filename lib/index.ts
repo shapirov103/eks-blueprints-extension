@@ -1,10 +1,10 @@
-import { ManagedPolicy } from '@aws-cdk/aws-iam';
-import { Construct } from '@aws-cdk/core';
-import { ServiceAccount } from '@aws-cdk/aws-eks'; 
-import * as ssp from '@aws-quickstart/ssp-amazon-eks';
+import * as blueprints from '@aws-quickstart/eks-blueprints';
+import { ServiceAccount } from 'aws-cdk-lib/aws-eks';
+import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
 
 
-export interface MyFluentBitAddOnProps extends ssp.addons.HelmAddOnUserProps {
+export interface MyFluentBitAddOnProps extends blueprints.addons.HelmAddOnUserProps {
     /**
      * Cloudwatch region where logs are forwarded
      */
@@ -17,19 +17,19 @@ export interface MyFluentBitAddOnProps extends ssp.addons.HelmAddOnUserProps {
 }
 
 
-export const defaultProps: ssp.addons.HelmAddOnProps & MyFluentBitAddOnProps = {
+export const defaultProps: blueprints.addons.HelmAddOnProps & MyFluentBitAddOnProps = {
     chart: 'aws-for-fluent-bit',
     cloudWatchRegion: 'us-east-1',
     name: 'my-addon',
     namespace: 'kube-system',
-    release: 'ssp-addon-myextension-fluent-bit',
+    release: 'blueprints-addon-myextension-fluent-bit',
     version: '0.1.11',
     repository: 'https://aws.github.io/eks-charts',
     values: {}
 }
 
 
-export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
+export class MyFluentBitAddOn extends blueprints.addons.HelmAddOn {
 
     readonly options: MyFluentBitAddOnProps;
 
@@ -40,10 +40,10 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
 
     // Declares dependency on secret store add-on if secrets are needed. 
     // Customers will have to explicitly add this add-on to the blueprint.
-    @ssp.utils.dependable(ssp.SecretsStoreAddOn.name) 
-    deploy(clusterInfo: ssp.ClusterInfo): Promise<Construct> {
+    @blueprints.utils.dependable(blueprints.SecretsStoreAddOn.name) 
+    deploy(clusterInfo: blueprints.ClusterInfo): Promise<Construct> {
 
-        const ns = ssp.utils.createNamespace(this.props.namespace, clusterInfo.cluster, true);
+        const ns = blueprints.utils.createNamespace(this.props.namespace!, clusterInfo.cluster, true);
 
         const serviceAccountName = 'aws-for-fluent-bit-sa';
         const sa = clusterInfo.cluster.addServiceAccount('my-aws-for-fluent-bit-sa', {
@@ -58,7 +58,7 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
         const cloudWatchAgentPolicy = ManagedPolicy.fromAwsManagedPolicyName("CloudWatchAgentServerPolicy");
         sa.role.addManagedPolicy(cloudWatchAgentPolicy);
 
-        const values: ssp.Values = {
+        const values: blueprints.Values = {
             serviceAccount: {
                 create: false,
                 name: serviceAccountName
@@ -68,7 +68,7 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
             }
         };
 
-        let secretProviderClass : ssp.addons.SecretProviderClass | undefined;
+        let secretProviderClass : blueprints.addons.SecretProviderClass | undefined;
         if(this.options.licenseKeySecret) {
             secretProviderClass = this.setupSecretProviderClass(clusterInfo, sa);
             this.addSecretVolumeAndMount(values);
@@ -94,9 +94,9 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
      * @param serviceAccount 
      * @returns 
      */
-    private setupSecretProviderClass(clusterInfo: ssp.ClusterInfo, serviceAccount: ServiceAccount): ssp.SecretProviderClass {
-        const csiSecret: ssp.addons.CsiSecretProps = {
-            secretProvider: new ssp.LookupSecretsManagerSecretByName(this.options.licenseKeySecret!),
+    private setupSecretProviderClass(clusterInfo: blueprints.ClusterInfo, serviceAccount: ServiceAccount): blueprints.SecretProviderClass {
+        const csiSecret: blueprints.addons.CsiSecretProps = {
+            secretProvider: new blueprints.LookupSecretsManagerSecretByName(this.options.licenseKeySecret!),
             kubernetesSecret: {
                 secretName: this.options.licenseKeySecret!,
                 data: [
@@ -107,7 +107,7 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
             }
         };
 
-       return new ssp.addons.SecretProviderClass(clusterInfo, serviceAccount, "my-addon-license-secret-class", csiSecret);
+       return new blueprints.addons.SecretProviderClass(clusterInfo, serviceAccount, "my-addon-license-secret-class", csiSecret);
     }
 
     /**
@@ -115,8 +115,8 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
      * Helm support to add volumes and mounts is part of the aws fluentbit helm chart.
      * @param values for the helm chart where volumes and mounts must be added
      */
-    private addSecretVolumeAndMount(values: ssp.Values) {
-        ssp.utils.setPath(values, "volumes", [
+    private addSecretVolumeAndMount(values: blueprints.Values) {
+        blueprints.utils.setPath(values, "volumes", [
             {
                 name: "secrets-store-inline",
                 csi: {
@@ -128,7 +128,7 @@ export class MyFluentBitAddOn extends ssp.addons.HelmAddOn {
                 }
             }
         ]);
-        ssp.utils.setPath(values, "volumeMounts", [
+        blueprints.utils.setPath(values, "volumeMounts", [
             {
                 name: "secrets-store-inline",
                 mountPath: "/mnt/secret-store"
